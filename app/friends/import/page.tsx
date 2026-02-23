@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from "@/components/AuthGuard";
 import { createFriend, createImportantDate } from '@/lib/db';
+import { parsePhoneNumber } from 'libphonenumber-js';
 
 type Contact = {
   name: string;
@@ -105,16 +106,27 @@ function ImportContactsPage() {
 
   const parseDateString = (dateStr: string): { month: number; day: number } | null => {
     // Remove any non-digit/hyphen characters
-    const cleaned = dateStr.replace(/[^\d-]/g, '');
+    let cleaned = dateStr.trim().replace(/[^\d-]/g, '');
+
+    // Handle --MMDD format (no year)
+    if (cleaned.startsWith('--')) {
+      cleaned = cleaned.substring(2);
+      if (cleaned.length === 4) {
+        return {
+          month: parseInt(cleaned.substring(0, 2)),
+          day: parseInt(cleaned.substring(2, 4)),
+        };
+      }
+    }
 
     // Try YYYY-MM-DD format
     if (cleaned.includes('-')) {
-      const parts = cleaned.split('-');
-      if (parts.length >= 3) {
-        return {
-          month: parseInt(parts[1]),
-          day: parseInt(parts[2]),
-        };
+      const parts = cleaned.split('-').filter(p => p);
+      if (parts.length >= 2) {
+        // Could be YYYY-MM-DD or --MM-DD or MM-DD
+        const month = parts.length === 3 ? parseInt(parts[1]) : parseInt(parts[0]);
+        const day = parts.length === 3 ? parseInt(parts[2]) : parseInt(parts[1]);
+        return { month, day };
       }
     }
 
@@ -126,7 +138,92 @@ function ImportContactsPage() {
       };
     }
 
+    // Try MMDD format (4 digits, no year)
+    if (cleaned.length === 4) {
+      return {
+        month: parseInt(cleaned.substring(0, 2)),
+        day: parseInt(cleaned.substring(2, 4)),
+      };
+    }
+
     return null;
+  };
+
+  const inferCityFromPhone = (phone: string): { city: string | null; timezone: string } => {
+    try {
+      const parsed = parsePhoneNumber(phone);
+      if (!parsed) return { city: null, timezone: 'America/New_York' };
+
+      const country = parsed.country;
+
+      // Map countries to default cities and timezones
+      const countryDefaults: Record<string, { city: string; timezone: string }> = {
+        'US': { city: 'New York', timezone: 'America/New_York' },
+        'GB': { city: 'London', timezone: 'Europe/London' },
+        'AU': { city: 'Sydney', timezone: 'Australia/Sydney' },
+        'CA': { city: 'Toronto', timezone: 'America/Toronto' },
+        'FR': { city: 'Paris', timezone: 'Europe/Paris' },
+        'DE': { city: 'Berlin', timezone: 'Europe/Berlin' },
+        'ES': { city: 'Madrid', timezone: 'Europe/Madrid' },
+        'IT': { city: 'Rome', timezone: 'Europe/Rome' },
+        'NL': { city: 'Amsterdam', timezone: 'Europe/Amsterdam' },
+        'BE': { city: 'Brussels', timezone: 'Europe/Brussels' },
+        'CH': { city: 'Zurich', timezone: 'Europe/Zurich' },
+        'AT': { city: 'Vienna', timezone: 'Europe/Vienna' },
+        'SE': { city: 'Stockholm', timezone: 'Europe/Stockholm' },
+        'NO': { city: 'Oslo', timezone: 'Europe/Oslo' },
+        'DK': { city: 'Copenhagen', timezone: 'Europe/Copenhagen' },
+        'FI': { city: 'Helsinki', timezone: 'Europe/Helsinki' },
+        'IE': { city: 'Dublin', timezone: 'Europe/Dublin' },
+        'PT': { city: 'Lisbon', timezone: 'Europe/Lisbon' },
+        'GR': { city: 'Athens', timezone: 'Europe/Athens' },
+        'PL': { city: 'Warsaw', timezone: 'Europe/Warsaw' },
+        'CZ': { city: 'Prague', timezone: 'Europe/Prague' },
+        'HU': { city: 'Budapest', timezone: 'Europe/Budapest' },
+        'RO': { city: 'Bucharest', timezone: 'Europe/Bucharest' },
+        'BG': { city: 'Sofia', timezone: 'Europe/Sofia' },
+        'HR': { city: 'Zagreb', timezone: 'Europe/Zagreb' },
+        'SI': { city: 'Ljubljana', timezone: 'Europe/Ljubljana' },
+        'SK': { city: 'Bratislava', timezone: 'Europe/Bratislava' },
+        'LT': { city: 'Vilnius', timezone: 'Europe/Vilnius' },
+        'LV': { city: 'Riga', timezone: 'Europe/Riga' },
+        'EE': { city: 'Tallinn', timezone: 'Europe/Tallinn' },
+        'JP': { city: 'Tokyo', timezone: 'Asia/Tokyo' },
+        'CN': { city: 'Beijing', timezone: 'Asia/Shanghai' },
+        'KR': { city: 'Seoul', timezone: 'Asia/Seoul' },
+        'IN': { city: 'Mumbai', timezone: 'Asia/Kolkata' },
+        'SG': { city: 'Singapore', timezone: 'Asia/Singapore' },
+        'HK': { city: 'Hong Kong', timezone: 'Asia/Hong_Kong' },
+        'TW': { city: 'Taipei', timezone: 'Asia/Taipei' },
+        'TH': { city: 'Bangkok', timezone: 'Asia/Bangkok' },
+        'MY': { city: 'Kuala Lumpur', timezone: 'Asia/Kuala_Lumpur' },
+        'ID': { city: 'Jakarta', timezone: 'Asia/Jakarta' },
+        'PH': { city: 'Manila', timezone: 'Asia/Manila' },
+        'VN': { city: 'Hanoi', timezone: 'Asia/Ho_Chi_Minh' },
+        'NZ': { city: 'Auckland', timezone: 'Pacific/Auckland' },
+        'BR': { city: 'São Paulo', timezone: 'America/Sao_Paulo' },
+        'MX': { city: 'Mexico City', timezone: 'America/Mexico_City' },
+        'AR': { city: 'Buenos Aires', timezone: 'America/Argentina/Buenos_Aires' },
+        'CL': { city: 'Santiago', timezone: 'America/Santiago' },
+        'CO': { city: 'Bogotá', timezone: 'America/Bogota' },
+        'PE': { city: 'Lima', timezone: 'America/Lima' },
+        'VE': { city: 'Caracas', timezone: 'America/Caracas' },
+        'ZA': { city: 'Johannesburg', timezone: 'Africa/Johannesburg' },
+        'EG': { city: 'Cairo', timezone: 'Africa/Cairo' },
+        'NG': { city: 'Lagos', timezone: 'Africa/Lagos' },
+        'KE': { city: 'Nairobi', timezone: 'Africa/Nairobi' },
+        'IL': { city: 'Tel Aviv', timezone: 'Asia/Jerusalem' },
+        'AE': { city: 'Dubai', timezone: 'Asia/Dubai' },
+        'SA': { city: 'Riyadh', timezone: 'Asia/Riyadh' },
+        'TR': { city: 'Istanbul', timezone: 'Europe/Istanbul' },
+        'RU': { city: 'Moscow', timezone: 'Europe/Moscow' },
+        'UA': { city: 'Kyiv', timezone: 'Europe/Kiev' },
+      };
+
+      return countryDefaults[country] || { city: null, timezone: 'America/New_York' };
+    } catch (err) {
+      return { city: null, timezone: 'America/New_York' };
+    }
   };
 
   const parseContacts = () => {
@@ -189,11 +286,14 @@ function ImportContactsPage() {
     for (let i = 0; i < selectedContacts.length; i++) {
       const contact = selectedContacts[i];
       try {
+        // Infer city and timezone from phone number
+        const { city, timezone } = contact.phone ? inferCityFromPhone(contact.phone) : { city: null, timezone: 'America/New_York' };
+
         const friend = await createFriend({
           name: contact.name,
           phone: contact.phone || null,
-          city: null,
-          timezone: 'America/New_York', // Default, they can edit later
+          city: city,
+          timezone: timezone,
           cadence: 'monthly',
           priority: 'high',
           weekday_start: '09:00',
