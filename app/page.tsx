@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signOut, signIn } from 'next-auth/react';
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/lib/auth-context";
 import { getFriends, getImportantDates, updateFriend, type Friend, type ImportantDate } from '@/lib/db';
@@ -465,7 +465,7 @@ function HomePage() {
                 </div>
 
                 <button
-                  onClick={() => (window.location.href = '/availability')}
+                  onClick={() => signIn('google')}
                   className="px-5 py-2.5 rounded-full font-sans font-medium text-sm transition-all duration-300 hover:scale-[1.02]"
                   style={{
                     background: 'linear-gradient(135deg, #E89264 0%, #C17B5C 100%)',
