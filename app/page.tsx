@@ -421,49 +421,57 @@ function HomePage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Connect Calendar CTA - shown when calendar not connected */}
-      {!session?.accessToken && (
-        <div className="animate-slide-up">
-          <div
-            className="rounded-[24px] p-6 backdrop-blur-md border"
-            style={{
-              background: 'rgba(232, 146, 100, 0.08)',
-              borderColor: 'rgba(232, 146, 100, 0.2)',
-              boxShadow: '0 4px 16px rgba(232, 146, 100, 0.08)',
-            }}
-          >
-            <div className="flex items-start gap-4">
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(232, 146, 100, 0.15) 0%, rgba(193, 123, 92, 0.1) 100%)',
-                }}
+      {/* Calendar Connection Card - Always visible */}
+      <div className="animate-slide-up">
+        <div
+          className="rounded-[24px] p-6 backdrop-blur-md border"
+          style={{
+            background: session?.accessToken
+              ? 'rgba(46, 125, 50, 0.08)'
+              : 'rgba(232, 146, 100, 0.08)',
+            borderColor: session?.accessToken
+              ? 'rgba(46, 125, 50, 0.2)'
+              : 'rgba(232, 146, 100, 0.2)',
+            boxShadow: '0 4px 16px rgba(139, 98, 74, 0.08)',
+          }}
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: session?.accessToken
+                  ? 'linear-gradient(135deg, rgba(46, 125, 50, 0.15) 0%, rgba(46, 125, 50, 0.1) 100%)'
+                  : 'linear-gradient(135deg, rgba(232, 146, 100, 0.15) 0%, rgba(193, 123, 92, 0.1) 100%)',
+              }}
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke={session?.accessToken ? "#2E7D32" : "#C17B5C"}
+                strokeWidth="2"
+                viewBox="0 0 24 24"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="#C17B5C"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+
+            <div className="flex-1 space-y-3">
+              <div>
+                <h3 className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
+                  {session?.accessToken ? 'Google Calendar Connected' : 'Connect your calendar'}
+                </h3>
+                <p className="text-sm font-sans opacity-70 mt-1" style={{ color: '#7A6F65' }}>
+                  {session?.accessToken
+                    ? "We'll automatically avoid suggesting calls during your busy times"
+                    : "See when you're free and get smart call suggestions"}
+                </p>
               </div>
 
-              <div className="flex-1 space-y-3">
-                <div>
-                  <h3 className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
-                    Connect your calendar
-                  </h3>
-                  <p className="text-sm font-sans opacity-70 mt-1" style={{ color: '#7A6F65' }}>
-                    See when you're free and get smart call suggestions
-                  </p>
-                </div>
-
+              {!session?.accessToken ? (
                 <button
                   onClick={() => signIn('google')}
                   className="px-5 py-2.5 rounded-full font-sans font-medium text-sm transition-all duration-300 hover:scale-[1.02]"
@@ -475,38 +483,37 @@ function HomePage() {
                 >
                   Connect Google Calendar
                 </button>
-              </div>
+              ) : (
+                <button
+                  onClick={() => signOut()}
+                  className="px-5 py-2.5 rounded-full font-sans font-medium text-sm transition-all duration-300 hover:scale-[1.02]"
+                  style={{
+                    background: 'rgba(179, 38, 30, 0.1)',
+                    color: '#B3261E',
+                    border: '1px solid rgba(179, 38, 30, 0.2)',
+                  }}
+                >
+                  Disconnect Calendar
+                </button>
+              )}
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Free Time Section */}
       {session?.accessToken && freeSlots.length > 0 && (
         <div className="space-y-4 animate-slide-up">
-          <div className="flex items-center justify-between">
-            <div className="relative">
-              <h2 className="relative inline-block text-lg font-serif" style={{ color: '#5C4A3E' }}>
-                Your free time
-                <div
-                  className="absolute -bottom-1 left-0 h-[3px] w-16 rounded-full opacity-40"
-                  style={{
-                    background: 'linear-gradient(90deg, #E89264 0%, transparent 100%)',
-                  }}
-                />
-              </h2>
-            </div>
-            <button
-              onClick={() => signOut()}
-              className="px-4 py-2 rounded-full font-sans font-medium text-xs transition-all duration-200 hover:scale-105"
-              style={{
-                background: 'rgba(179, 38, 30, 0.1)',
-                color: '#B3261E',
-                border: '1px solid rgba(179, 38, 30, 0.15)',
-              }}
-            >
-              Disconnect Calendar
-            </button>
+          <div className="relative">
+            <h2 className="relative inline-block text-lg font-serif" style={{ color: '#5C4A3E' }}>
+              Your free time
+              <div
+                className="absolute -bottom-1 left-0 h-[3px] w-16 rounded-full opacity-40"
+                style={{
+                  background: 'linear-gradient(90deg, #E89264 0%, transparent 100%)',
+                }}
+              />
+            </h2>
           </div>
 
           <div className="space-y-3">
@@ -626,9 +633,7 @@ function HomePage() {
                 >
                   {friends.length === 0
                     ? 'No calls scheduled yet'
-                    : session?.accessToken
-                      ? 'Connect your calendar or adjust friend availability'
-                      : 'Connect your calendar to see suggestions'
+                    : 'Adjust friend availability or check back later'
                   }
                 </p>
               </div>
