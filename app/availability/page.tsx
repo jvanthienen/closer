@@ -40,8 +40,13 @@ function AvailabilityPage() {
   useEffect(() => {
     if (connected) {
       fetchBusyTimes();
+      // Redirect to home after successful connection
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [connected]);
+  }, [connected, router]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-8">

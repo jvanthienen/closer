@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/lib/auth-context";
 import { getFriends, getImportantDates, updateFriend, type Friend, type ImportantDate } from '@/lib/db';
@@ -484,16 +484,29 @@ function HomePage() {
       {/* Free Time Section */}
       {session?.accessToken && freeSlots.length > 0 && (
         <div className="space-y-4 animate-slide-up">
-          <div className="relative">
-            <h2 className="relative inline-block text-lg font-serif" style={{ color: '#5C4A3E' }}>
-              Your free time
-              <div
-                className="absolute -bottom-1 left-0 h-[3px] w-16 rounded-full opacity-40"
-                style={{
-                  background: 'linear-gradient(90deg, #E89264 0%, transparent 100%)',
-                }}
-              />
-            </h2>
+          <div className="flex items-center justify-between">
+            <div className="relative">
+              <h2 className="relative inline-block text-lg font-serif" style={{ color: '#5C4A3E' }}>
+                Your free time
+                <div
+                  className="absolute -bottom-1 left-0 h-[3px] w-16 rounded-full opacity-40"
+                  style={{
+                    background: 'linear-gradient(90deg, #E89264 0%, transparent 100%)',
+                  }}
+                />
+              </h2>
+            </div>
+            <button
+              onClick={() => signOut()}
+              className="px-4 py-2 rounded-full font-sans font-medium text-xs transition-all duration-200 hover:scale-105"
+              style={{
+                background: 'rgba(179, 38, 30, 0.1)',
+                color: '#B3261E',
+                border: '1px solid rgba(179, 38, 30, 0.15)',
+              }}
+            >
+              Disconnect Calendar
+            </button>
           </div>
 
           <div className="space-y-3">
