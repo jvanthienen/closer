@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from "@/components/AuthGuard";
-import { createFriend } from '@/lib/db';
+import { createFriend, createImportantDate } from '@/lib/db';
 
 type Contact = {
   name: string;
   phone: string;
+  birthday?: { month: number; day: number };
+  anniversary?: { month: number; day: number };
   selected: boolean;
 };
 
@@ -49,6 +51,8 @@ function ImportContactsPage() {
 
       let name = '';
       let phone = '';
+      let birthday: { month: number; day: number } | undefined;
+      let anniversary: { month: number; day: number } | undefined;
 
       // Extract FN (Full Name)
       const fnMatch = vcard.match(/FN[;:](.+)/);
@@ -56,22 +60,73 @@ function ImportContactsPage() {
         name = fnMatch[1].trim().replace(/\r?\n/g, '');
       }
 
-      // Extract TEL (Phone)
+      // Extract TEL (Phone) - handle both formats
       const telMatch = vcard.match(/TEL[;:](.+)/);
       if (telMatch) {
-        phone = telMatch[1].trim().replace(/\r?\n/g, '');
+        let telValue = telMatch[1].trim().replace(/\r?\n/g, '');
+
+        // If it contains a colon, extract the part after it
+        if (telValue.includes(':')) {
+          telValue = telValue.split(':').pop()!.trim();
+        }
+
+        phone = telValue;
+      }
+
+      // Extract BDAY (Birthday) - format: YYYYMMDD or YYYY-MM-DD
+      const bdayMatch = vcard.match(/BDAY[;:](.+)/);
+      if (bdayMatch) {
+        const bdayValue = bdayMatch[1].trim().replace(/\r?\n/g, '');
+        const parsed = parseDateString(bdayValue);
+        if (parsed) birthday = parsed;
+      }
+
+      // Extract ANNIVERSARY - format: YYYYMMDD or YYYY-MM-DD
+      const annivMatch = vcard.match(/ANNIVERSARY[;:](.+)/);
+      if (annivMatch) {
+        const annivValue = annivMatch[1].trim().replace(/\r?\n/g, '');
+        const parsed = parseDateString(annivValue);
+        if (parsed) anniversary = parsed;
       }
 
       if (name || phone) {
         contacts.push({
           name: name || 'Unknown',
           phone: phone,
+          birthday,
+          anniversary,
           selected: true,
         });
       }
     }
 
     return contacts;
+  };
+
+  const parseDateString = (dateStr: string): { month: number; day: number } | null => {
+    // Remove any non-digit/hyphen characters
+    const cleaned = dateStr.replace(/[^\d-]/g, '');
+
+    // Try YYYY-MM-DD format
+    if (cleaned.includes('-')) {
+      const parts = cleaned.split('-');
+      if (parts.length >= 3) {
+        return {
+          month: parseInt(parts[1]),
+          day: parseInt(parts[2]),
+        };
+      }
+    }
+
+    // Try YYYYMMDD format
+    if (cleaned.length === 8) {
+      return {
+        month: parseInt(cleaned.substring(4, 6)),
+        day: parseInt(cleaned.substring(6, 8)),
+      };
+    }
+
+    return null;
   };
 
   const parseContacts = () => {
@@ -134,7 +189,7 @@ function ImportContactsPage() {
     for (let i = 0; i < selectedContacts.length; i++) {
       const contact = selectedContacts[i];
       try {
-        await createFriend({
+        const friend = await createFriend({
           name: contact.name,
           phone: contact.phone || null,
           city: null,
@@ -147,6 +202,27 @@ function ImportContactsPage() {
           weekend_end: '20:00',
           last_called_at: null,
         });
+
+        // Add birthday if present
+        if (contact.birthday) {
+          await createImportantDate({
+            friend_id: friend.id,
+            label: 'Birthday',
+            month: contact.birthday.month,
+            day: contact.birthday.day,
+          });
+        }
+
+        // Add anniversary if present
+        if (contact.anniversary) {
+          await createImportantDate({
+            friend_id: friend.id,
+            label: 'Anniversary',
+            month: contact.anniversary.month,
+            day: contact.anniversary.day,
+          });
+        }
+
         imported++;
         setProgress(Math.round((imported / selectedContacts.length) * 100));
       } catch (err) {
@@ -401,6 +477,32 @@ function ImportContactsPage() {
                 <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
                   {contact.phone || 'No phone number'}
                 </p>
+                {(contact.birthday || contact.anniversary) && (
+                  <div className="flex gap-2 mt-1">
+                    {contact.birthday && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full"
+                        style={{
+                          background: 'rgba(232, 146, 100, 0.15)',
+                          color: '#C17B5C',
+                        }}
+                      >
+                        🎂 {contact.birthday.month}/{contact.birthday.day}
+                      </span>
+                    )}
+                    {contact.anniversary && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full"
+                        style={{
+                          background: 'rgba(232, 146, 100, 0.15)',
+                          color: '#C17B5C',
+                        }}
+                      >
+                        💍 {contact.anniversary.month}/{contact.anniversary.day}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

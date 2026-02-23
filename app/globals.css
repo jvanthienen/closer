@@ -5,53 +5,213 @@
 @layer base {
   body {
     @apply antialiased;
-    color: #5C4A3E;
+    color: #1D1D1D;
+    /* Subtle paper texture */
+    background-color: #FAF7F4;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02' /%3E%3C/svg%3E");
   }
 
+  /* Rounded, friendly typography */
   h1 {
-    @apply text-[32px] font-bold leading-tight font-serif;
-    color: #3D2817;
-    letter-spacing: -0.02em;
-  }
-
-  h2 {
-    @apply text-xl font-semibold leading-snug font-serif;
-    color: #3D2817;
+    @apply text-[32px] font-bold leading-tight font-sans;
+    color: #1D1D1D;
     letter-spacing: -0.01em;
   }
 
+  h2 {
+    @apply text-2xl font-bold leading-snug font-sans;
+    color: #1D1D1D;
+  }
+
   h3 {
-    @apply text-base font-semibold leading-normal font-sans;
-    color: #5C4A3E;
+    @apply text-lg font-semibold leading-normal font-sans;
+    color: #1D1D1D;
   }
 
   h4 {
-    @apply text-sm font-semibold leading-normal font-sans;
-    color: #5C4A3E;
+    @apply text-base font-semibold leading-normal font-sans;
+    color: #1D1D1D;
   }
 
   p {
     @apply leading-relaxed;
+    color: #6B6B6B;
   }
 
-  /* Smooth animations */
+  /* Springy animations */
   * {
-    @apply transition-colors duration-200;
+    @apply transition-all duration-200;
+  }
+
+  button {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  button:active {
+    transform: scale(0.96);
   }
 }
 
 @layer utilities {
-  .glass {
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+  /* Hand-drawn button styles */
+  .btn-handdrawn {
+    position: relative;
+    border-radius: 28px;
+    border: 2.5px solid currentColor;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    background: transparent;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  .glass-strong {
-    background: rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.38);
+  .btn-handdrawn:hover {
+    transform: scale(1.05);
+  }
+
+  .btn-handdrawn:active {
+    transform: scale(0.96);
+  }
+
+  /* Hand-drawn card with wobbly outline */
+  .card-handdrawn {
+    position: relative;
+    background: white;
+    border-radius: 20px;
+    border: 2.5px solid #1D1D1D;
+    padding: 20px;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .card-handdrawn:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Wobbly SVG border (we'll add this dynamically) */
+  .wobbly-border {
+    position: relative;
+  }
+
+  .wobbly-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: currentColor;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Color utilities for playful palette */
+  .text-tomato {
+    color: #E63946;
+  }
+
+  .text-orange {
+    color: #F77F00;
+  }
+
+  .text-marigold {
+    color: #F4A261;
+  }
+
+  .text-cobalt {
+    color: #457B9D;
+  }
+
+  .text-navy {
+    color: #1D3557;
+  }
+
+  .text-magenta {
+    color: #E76F9B;
+  }
+
+  .text-burgundy {
+    color: #A63446;
+  }
+
+  .text-sage {
+    color: #8CB369;
+  }
+
+  .bg-tomato {
+    background-color: #E63946;
+  }
+
+  .bg-orange {
+    background-color: #F77F00;
+  }
+
+  .bg-marigold {
+    background-color: #F4A261;
+  }
+
+  .bg-cobalt {
+    background-color: #457B9D;
+  }
+
+  .bg-navy {
+    background-color: #1D3557;
+  }
+
+  .bg-magenta {
+    background-color: #E76F9B;
+  }
+
+  .bg-burgundy {
+    background-color: #A63446;
+  }
+
+  .bg-sage {
+    background-color: #8CB369;
+  }
+
+  .border-tomato {
+    border-color: #E63946;
+  }
+
+  .border-orange {
+    border-color: #F77F00;
+  }
+
+  .border-cobalt {
+    border-color: #457B9D;
+  }
+
+  .border-navy {
+    border-color: #1D3557;
+  }
+
+  .border-magenta {
+    border-color: #E76F9B;
+  }
+
+  .border-sage {
+    border-color: #8CB369;
+  }
+
+  /* Animation utilities */
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(1deg); }
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.3s ease-in-out;
+  }
+
+  @keyframes bounce-gentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .animate-bounce-gentle {
+    animation: bounce-gentle 0.4s ease-in-out;
   }
 }
