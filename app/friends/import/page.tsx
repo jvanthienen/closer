@@ -155,6 +155,7 @@ function ImportContactsPage() {
       if (!parsed) return { city: null, timezone: 'America/New_York' };
 
       const country = parsed.country;
+      if (!country) return { city: null, timezone: 'America/New_York' };
 
       // Map countries to default cities and timezones
       const countryDefaults: Record<string, { city: string; timezone: string }> = {
