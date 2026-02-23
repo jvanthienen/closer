@@ -1,34 +1,63 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from "@/components/AuthGuard";
 import { createFriend } from '@/lib/db';
 
-type ImportContact = {
-  name: string[];
-  tel: string[];
+type Contact = {
+  name: string;
+  phone: string;
   selected: boolean;
 };
 
 function ImportContactsPage() {
   const router = useRouter();
-  const [contacts, setContacts] = useState<ImportContact[]>([]);
+  const [textInput, setTextInput] = useState('');
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [step, setStep] = useState<'input' | 'review'>('input');
 
-  useEffect(() => {
-    // Load contacts from sessionStorage
-    const stored = sessionStorage.getItem('importContacts');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setContacts(parsed.map((c: any) => ({ ...c, selected: true })));
-      sessionStorage.removeItem('importContacts');
-    } else {
-      // No contacts to import, go back
-      router.push('/friends');
+  const parseContacts = () => {
+    const lines = textInput.trim().split('\n');
+    const parsed: Contact[] = [];
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+
+      // Try to parse "Name, Phone" or "Name Phone" format
+      const parts = line.split(',').map(p => p.trim());
+
+      if (parts.length >= 2) {
+        // Format: "Name, Phone"
+        parsed.push({
+          name: parts[0],
+          phone: parts[1],
+          selected: true,
+        });
+      } else {
+        // Try to extract phone number from the line
+        const phoneMatch = line.match(/[\d\s\-\+\(\)]+/);
+        const phone = phoneMatch ? phoneMatch[0].trim() : '';
+        const name = line.replace(phone, '').trim();
+
+        parsed.push({
+          name: name || 'Unknown',
+          phone: phone,
+          selected: true,
+        });
+      }
     }
-  }, [router]);
+
+    if (parsed.length === 0) {
+      alert('No contacts found. Please check the format.');
+      return;
+    }
+
+    setContacts(parsed);
+    setStep('review');
+  };
 
   const toggleContact = (index: number) => {
     setContacts(contacts.map((c, i) =>
@@ -51,8 +80,8 @@ function ImportContactsPage() {
       const contact = selectedContacts[i];
       try {
         await createFriend({
-          name: contact.name[0] || 'Unknown',
-          phone: contact.tel[0] || null,
+          name: contact.name,
+          phone: contact.phone || null,
           city: null,
           timezone: 'America/New_York', // Default, they can edit later
           cadence: 'monthly',
@@ -66,7 +95,7 @@ function ImportContactsPage() {
         imported++;
         setProgress(Math.round((imported / selectedContacts.length) * 100));
       } catch (err) {
-        console.error('Failed to import contact:', contact.name[0], err);
+        console.error('Failed to import contact:', contact.name, err);
       }
     }
 
@@ -75,16 +104,100 @@ function ImportContactsPage() {
     router.push('/friends');
   };
 
-  if (contacts.length === 0) {
-    return <div className="flex items-center justify-center min-h-[50vh]">Loading...</div>;
+  if (step === 'input') {
+    return (
+      <div className="space-y-6 animate-fade-in pb-8">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+            style={{
+              background: 'rgba(193, 123, 92, 0.1)',
+            }}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="#C17B5C"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <h1>Import Contacts</h1>
+        </div>
+
+        {/* Instructions */}
+        <div
+          className="rounded-[24px] p-6 backdrop-blur-md border space-y-3"
+          style={{
+            background: 'rgba(255, 252, 249, 0.65)',
+            borderColor: 'rgba(255, 255, 255, 0.5)',
+            boxShadow: '0 8px 32px rgba(139, 98, 74, 0.08)',
+          }}
+        >
+          <h3 className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
+            How to import
+          </h3>
+          <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
+            Paste your contacts below, one per line:
+          </p>
+          <div
+            className="rounded-xl p-3 font-mono text-xs"
+            style={{
+              background: 'rgba(193, 123, 92, 0.08)',
+              color: '#7A6F65',
+            }}
+          >
+            John Doe, +1 234 567 8900<br />
+            Jane Smith, +1 098 765 4321<br />
+            Bob Johnson, +44 20 1234 5678
+          </div>
+        </div>
+
+        {/* Text Input */}
+        <div>
+          <textarea
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            placeholder="Paste contacts here..."
+            rows={12}
+            className="w-full px-4 py-3 rounded-2xl font-sans text-sm resize-none"
+            style={{
+              background: 'rgba(255, 255, 255, 0.8)',
+              border: '1px solid rgba(193, 123, 92, 0.2)',
+              color: '#3D2817',
+            }}
+          />
+        </div>
+
+        {/* Parse Button */}
+        <button
+          onClick={parseContacts}
+          disabled={!textInput.trim()}
+          className="w-full px-6 py-4 rounded-full font-sans font-medium transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
+          style={{
+            background: 'linear-gradient(135deg, #E89264 0%, #C17B5C 100%)',
+            color: '#FFFCF9',
+            boxShadow: '0 4px 16px rgba(232, 146, 100, 0.3)',
+          }}
+        >
+          Continue
+        </button>
+      </div>
+    );
   }
 
+  // Review step
   return (
     <div className="space-y-6 animate-fade-in pb-8">
       {/* Header */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => router.back()}
+          onClick={() => setStep('input')}
           disabled={importing}
           className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
           style={{
@@ -102,7 +215,7 @@ function ImportContactsPage() {
           </svg>
         </button>
 
-        <h1>Import Contacts</h1>
+        <h1>Review & Import</h1>
       </div>
 
       {/* Info */}
@@ -153,10 +266,10 @@ function ImportContactsPage() {
               {/* Contact Info */}
               <div className="flex-1">
                 <p className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
-                  {contact.name[0] || 'Unknown'}
+                  {contact.name}
                 </p>
                 <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
-                  {contact.tel[0] || 'No phone number'}
+                  {contact.phone || 'No phone number'}
                 </p>
               </div>
             </div>

@@ -27,37 +27,8 @@ function FriendsPage() {
   };
 
   const handleImportContacts = async () => {
-    // Check if Contact Picker API is available
-    if (!('contacts' in navigator) || !(navigator as any).contacts) {
-      alert('Contact import is not supported on this device. Please add friends manually.');
-      return;
-    }
-
-    setImporting(true);
-    try {
-      const props = ['name', 'tel'];
-      const opts = { multiple: true };
-
-      const contacts = await (navigator as any).contacts.select(props, opts);
-
-      if (contacts && contacts.length > 0) {
-        // Show confirmation with count
-        const confirmed = confirm(`Import ${contacts.length} contact(s)? You can edit details after importing.`);
-
-        if (confirmed) {
-          // Redirect to import page with contact data
-          sessionStorage.setItem('importContacts', JSON.stringify(contacts));
-          router.push('/friends/import');
-        }
-      }
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        console.error('Failed to import contacts:', err);
-        alert('Failed to import contacts. Please try again or add friends manually.');
-      }
-    } finally {
-      setImporting(false);
-    }
+    // Go directly to import page (works on all devices)
+    router.push('/friends/import');
   };
 
   if (loading) {
