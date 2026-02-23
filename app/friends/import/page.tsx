@@ -19,6 +19,61 @@ function ImportContactsPage() {
   const [progress, setProgress] = useState(0);
   const [step, setStep] = useState<'input' | 'review'>('input');
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = parseVCard(text);
+
+      if (parsed.length === 0) {
+        alert('No contacts found in file. Please check the format.');
+        return;
+      }
+
+      setContacts(parsed);
+      setStep('review');
+    } catch (err) {
+      console.error('Failed to parse vCard:', err);
+      alert('Failed to import contacts. Please try again.');
+    }
+  };
+
+  const parseVCard = (vcfText: string): Contact[] => {
+    const contacts: Contact[] = [];
+    const vcards = vcfText.split('BEGIN:VCARD');
+
+    for (const vcard of vcards) {
+      if (!vcard.trim()) continue;
+
+      let name = '';
+      let phone = '';
+
+      // Extract FN (Full Name)
+      const fnMatch = vcard.match(/FN[;:](.+)/);
+      if (fnMatch) {
+        name = fnMatch[1].trim().replace(/\r?\n/g, '');
+      }
+
+      // Extract TEL (Phone)
+      const telMatch = vcard.match(/TEL[;:](.+)/);
+      if (telMatch) {
+        phone = telMatch[1].trim().replace(/\r?\n/g, '');
+      }
+
+      if (name || phone) {
+        contacts.push({
+          name: name || 'Unknown',
+          phone: phone,
+          selected: true,
+        });
+      }
+    }
+
+    return contacts;
+  };
+
   const parseContacts = () => {
     const lines = textInput.trim().split('\n');
     const parsed: Contact[] = [];
@@ -130,6 +185,81 @@ function ImportContactsPage() {
           <h1>Import Contacts</h1>
         </div>
 
+        {/* Upload vCard */}
+        <div
+          className="rounded-[24px] p-6 backdrop-blur-md border space-y-4"
+          style={{
+            background: 'rgba(232, 146, 100, 0.08)',
+            borderColor: 'rgba(232, 146, 100, 0.2)',
+            boxShadow: '0 4px 16px rgba(232, 146, 100, 0.08)',
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, rgba(232, 146, 100, 0.15) 0%, rgba(193, 123, 92, 0.1) 100%)',
+              }}
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="#C17B5C"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+            </div>
+            <div className="flex-1 space-y-2">
+              <h3 className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
+                Import from iPhone
+              </h3>
+              <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
+                1. Open Contacts app<br />
+                2. Select contacts → Share → Save to Files<br />
+                3. Upload the .vcf file below
+              </p>
+            </div>
+          </div>
+
+          <label className="block">
+            <input
+              type="file"
+              accept=".vcf,.vcard"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="vcf-upload"
+            />
+            <div
+              className="w-full px-6 py-3 rounded-full font-sans font-medium text-sm transition-all duration-300 hover:scale-[1.02] cursor-pointer text-center"
+              style={{
+                background: 'linear-gradient(135deg, #E89264 0%, #C17B5C 100%)',
+                color: '#FFFCF9',
+                boxShadow: '0 4px 16px rgba(232, 146, 100, 0.3)',
+              }}
+            >
+              Choose vCard File (.vcf)
+            </div>
+          </label>
+        </div>
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t" style={{ borderColor: 'rgba(193, 123, 92, 0.2)' }} />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="px-4 text-sm font-sans" style={{ background: '#FBF6F1', color: '#7A6F65' }}>
+              or paste manually
+            </span>
+          </div>
+        </div>
+
         {/* Instructions */}
         <div
           className="rounded-[24px] p-6 backdrop-blur-md border space-y-3"
@@ -140,10 +270,10 @@ function ImportContactsPage() {
           }}
         >
           <h3 className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
-            How to import
+            Paste contacts
           </h3>
           <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
-            Paste your contacts below, one per line:
+            One per line in this format:
           </p>
           <div
             className="rounded-xl p-3 font-mono text-xs"
