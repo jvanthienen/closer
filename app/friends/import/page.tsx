@@ -11,6 +11,7 @@ type Contact = {
   phone: string;
   birthday?: { month: number; day: number };
   anniversary?: { month: number; day: number };
+  customDates?: Array<{ label: string; month: number; day: number }>; // For kids' birthdays, etc.
   selected: boolean;
 };
 
@@ -54,6 +55,7 @@ function ImportContactsPage() {
       let phone = '';
       let birthday: { month: number; day: number } | undefined;
       let anniversary: { month: number; day: number } | undefined;
+      const customDates: Array<{ label: string; month: number; day: number }> = [];
 
       // Extract FN (Full Name)
       const fnMatch = vcard.match(/FN[;:](.+)/);
@@ -90,12 +92,50 @@ function ImportContactsPage() {
         if (parsed) anniversary = parsed;
       }
 
+      // Extract custom dates (e.g., kids' birthdays) - X-ABDATE fields
+      // Format: item1.X-ABDATE:1604-01-29 and item1.X-ABLabel:Baby Casia
+      const abDateRegex = /(item\d+)\.X-ABDATE[;:](.+)/g;
+      const abLabelRegex = /(item\d+)\.X-ABLabel:(.+)/g;
+
+      // Create maps of item -> date and item -> label
+      const dateMap = new Map<string, string>();
+      const labelMap = new Map<string, string>();
+
+      let match;
+      while ((match = abDateRegex.exec(vcard)) !== null) {
+        const itemId = match[1];
+        const dateValue = match[2].trim().replace(/\r?\n/g, '');
+        dateMap.set(itemId, dateValue);
+      }
+
+      while ((match = abLabelRegex.exec(vcard)) !== null) {
+        const itemId = match[1];
+        const label = match[2].trim().replace(/\r?\n/g, '');
+        labelMap.set(itemId, label);
+      }
+
+      // Match dates with labels
+      for (const [itemId, dateValue] of dateMap.entries()) {
+        const label = labelMap.get(itemId);
+        if (label) {
+          const parsed = parseDateString(dateValue);
+          if (parsed) {
+            customDates.push({
+              label: label.trim(),
+              month: parsed.month,
+              day: parsed.day,
+            });
+          }
+        }
+      }
+
       if (name || phone) {
         contacts.push({
           name: name || 'Unknown',
           phone: phone,
           birthday,
           anniversary,
+          customDates: customDates.length > 0 ? customDates : undefined,
           selected: true,
         });
       }
@@ -359,6 +399,18 @@ function ImportContactsPage() {
           });
         }
 
+        // Add custom dates (kids' birthdays, etc.)
+        if (contact.customDates) {
+          for (const customDate of contact.customDates) {
+            await createImportantDate({
+              friend_id: friend.id,
+              label: customDate.label,
+              month: customDate.month,
+              day: customDate.day,
+            });
+          }
+        }
+
         imported++;
         setProgress(Math.round((imported / selectedContacts.length) * 100));
       } catch (err) {
@@ -613,8 +665,8 @@ function ImportContactsPage() {
                 <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
                   {contact.phone || 'No phone number'}
                 </p>
-                {(contact.birthday || contact.anniversary) && (
-                  <div className="flex gap-2 mt-1">
+                {(contact.birthday || contact.anniversary || (contact.customDates && contact.customDates.length > 0)) && (
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {contact.birthday && (
                       <span
                         className="text-xs px-2 py-0.5 rounded-full"
@@ -637,6 +689,18 @@ function ImportContactsPage() {
                         💍 {contact.anniversary.month}/{contact.anniversary.day}
                       </span>
                     )}
+                    {contact.customDates && contact.customDates.map((customDate, dateIdx) => (
+                      <span
+                        key={dateIdx}
+                        className="text-xs px-2 py-0.5 rounded-full"
+                        style={{
+                          background: 'rgba(139, 195, 74, 0.15)',
+                          color: '#689F38',
+                        }}
+                      >
+                        👶 {customDate.label}: {customDate.month}/{customDate.day}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
