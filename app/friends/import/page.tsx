@@ -151,11 +151,35 @@ function ImportContactsPage() {
 
   const inferCityFromPhone = (phone: string): { city: string | null; timezone: string } => {
     try {
-      const parsed = parsePhoneNumber(phone);
-      if (!parsed) return { city: null, timezone: 'America/New_York' };
+      console.log('🔍 Parsing phone:', phone);
+
+      // Try parsing without country hint first (for international format like +61...)
+      let parsed = parsePhoneNumber(phone);
+      console.log('📞 Parsed result (no hint):', parsed);
+
+      // If that fails and the number doesn't start with +, try with US as default
+      if (!parsed && !phone.trim().startsWith('+')) {
+        console.log('🔍 Retrying with US as default country...');
+        try {
+          parsed = parsePhoneNumber(phone, 'US');
+          console.log('📞 Parsed result (US hint):', parsed);
+        } catch (e) {
+          console.log('❌ Failed to parse even with US hint:', e);
+        }
+      }
+
+      if (!parsed) {
+        console.log('❌ No parsed result');
+        return { city: null, timezone: 'America/New_York' };
+      }
 
       const country = parsed.country;
-      if (!country) return { city: null, timezone: 'America/New_York' };
+      console.log('🌍 Country code:', country);
+
+      if (!country) {
+        console.log('❌ No country detected');
+        return { city: null, timezone: 'America/New_York' };
+      }
 
       // Map countries to default cities and timezones
       const countryDefaults: Record<string, { city: string; timezone: string }> = {
@@ -221,8 +245,11 @@ function ImportContactsPage() {
         'UA': { city: 'Kyiv', timezone: 'Europe/Kiev' },
       };
 
-      return countryDefaults[country] || { city: null, timezone: 'America/New_York' };
+      const result = countryDefaults[country] || { city: null, timezone: 'America/New_York' };
+      console.log('✅ Inferred location:', result);
+      return result;
     } catch (err) {
+      console.log('❌ Error parsing phone:', err);
       return { city: null, timezone: 'America/New_York' };
     }
   };
@@ -289,6 +316,7 @@ function ImportContactsPage() {
       try {
         // Infer city and timezone from phone number
         const { city, timezone } = contact.phone ? inferCityFromPhone(contact.phone) : { city: null, timezone: 'America/New_York' };
+        console.log(`📝 Creating friend "${contact.name}" with city: "${city}", timezone: "${timezone}"`);
 
         const friend = await createFriend({
           name: contact.name,
