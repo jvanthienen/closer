@@ -7,6 +7,7 @@ import { getFriends, deleteFriend, type Friend } from '@/lib/db';
 import HandDrawnButton from '@/components/HandDrawnButton';
 import HandDrawnCard from '@/components/HandDrawnCard';
 import { PlusIcon, ImportIcon, EditIcon } from '@/components/HandDrawnIcons';
+import RoughBorder, { RoughCircle } from '@/components/RoughBorder';
 
 function FriendsPage() {
   const router = useRouter();
@@ -15,6 +16,9 @@ function FriendsPage() {
   const [importing, setImporting] = useState(false);
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+
+  // Light Chalk roughness (locked in)
+  const roughness = 2;
 
   useEffect(() => {
     loadFriends();
@@ -81,8 +85,8 @@ function FriendsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-cobalt text-lg font-semibold animate-pulse">
-          Loading friends...
+        <div className="text-cobalt text-lg font-bold animate-pulse">
+          Loading...
         </div>
       </div>
     );
@@ -90,102 +94,148 @@ function FriendsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with hand-drawn playful title */}
       <div className="flex items-center justify-between">
-        <h1 className="text-tomato">Friends</h1>
-        <div className="flex items-center gap-2">
+        <h1
+          style={{
+            color: '#E05F4F',
+            transform: `rotate(${Math.random() * 2 - 1}deg)`,
+            display: 'inline-block',
+          }}
+        >
+          Friends
+        </h1>
+        <div className="flex items-center gap-3">
+          {/* Import button - rough outline */}
           <button
             onClick={handleImportContacts}
             disabled={importing}
-            className="px-4 py-2 rounded-[24px] border-[2.5px] border-cobalt bg-transparent text-cobalt font-semibold text-sm transition-all hover:scale-105 active:scale-96 flex items-center gap-2"
+            className="relative px-4 py-2 bg-transparent font-bold text-sm flex items-center gap-2 transition-all hover:scale-105"
+            style={{ color: '#3B7CC4' }}
           >
-            <ImportIcon className="w-4 h-4" />
-            {importing ? 'Importing...' : 'Import'}
+            <RoughBorder color="#3B7CC4" roughness={roughness} />
+            <ImportIcon className="w-4 h-4 relative z-10" />
+            <span className="relative z-10">{importing ? 'Importing...' : 'Import'}</span>
           </button>
+
+          {/* Add button - round circle */}
           <button
             onClick={() => router.push('/friends/add')}
-            className="w-10 h-10 rounded-full bg-tomato border-[2.5px] border-tomato flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            className="relative w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            style={{
+              background: '#E05F4F',
+              transform: `rotate(${Math.random() * 3 - 1.5}deg)`,
+            }}
           >
-            <PlusIcon className="w-5 h-5" color="white" />
+            <RoughCircle color="#E05F4F" roughness={roughness} />
+            <PlusIcon className="w-6 h-6 relative z-10" color="white" />
           </button>
         </div>
       </div>
 
       {/* Friends list or empty state */}
       {friends.length === 0 ? (
-        <HandDrawnCard borderColor="cobalt" className="text-center space-y-4 p-8">
-          <p className="text-lg font-medium text-navy">
+        <div className="relative bg-white p-8 text-center space-y-4">
+          <RoughBorder color="#3B7CC4" roughness={2} />
+          <p className="text-lg font-bold relative z-10" style={{ color: '#2C3E5A' }}>
             No friends yet
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 relative z-10">
             Add someone you'd love to call
           </p>
-          <HandDrawnButton
-            variant="primary"
-            color="tomato"
+          <button
             onClick={() => router.push('/friends/add')}
+            className="relative px-6 py-3 bg-transparent font-bold text-sm transition-all hover:scale-105 inline-block"
+            style={{ color: '#E05F4F' }}
           >
-            Add your first friend
-          </HandDrawnButton>
-        </HandDrawnCard>
+            <RoughBorder color="#E05F4F" roughness={2} />
+            <span className="relative z-10">Add your first friend</span>
+          </button>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {friends.map((friend, idx) => {
-            // Rotate colors for variety
-            const colors = ['cobalt', 'tomato', 'sage', 'orange', 'magenta'] as const;
+            // Rotate colors - playful wine & coffee palette!
+            const colors = ['coral', 'blue', 'orange', 'navy', 'maroon'] as const;
             const borderColor = colors[idx % colors.length];
 
             const colorMap = {
-              cobalt: '#457B9D',
-              tomato: '#E63946',
-              sage: '#8CB369',
-              orange: '#F77F00',
-              magenta: '#E76F9B',
+              coral: '#E05F4F',
+              blue: '#3B7CC4',
+              orange: '#F5A052',
+              navy: '#2C3E5A',
+              maroon: '#9B5174',
             };
 
             return (
               <div
                 key={friend.id}
-                className="relative overflow-hidden"
+                className="relative overflow-visible"
               >
                 {/* Delete button (revealed on swipe) */}
-                <div
-                  className="absolute right-0 top-0 bottom-0 flex items-center justify-center px-6 bg-tomato rounded-r-[20px]"
-                  style={{ width: '100px' }}
-                >
-                  <button
-                    onClick={() => handleDelete(friend.id)}
-                    className="text-white font-semibold text-sm"
+                {swipedId === friend.id && (
+                  <div
+                    className="absolute right-0 top-0 bottom-0 flex items-center justify-center px-6 bg-tomato z-0"
+                    style={{
+                      width: '100px',
+                      borderRadius: '0 16px 16px 0',
+                    }}
                   >
-                    Delete
-                  </button>
-                </div>
+                    <button
+                      onClick={() => handleDelete(friend.id)}
+                      className="text-white font-bold text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
 
-                {/* Friend card (swipeable) */}
+                {/* Friend card (swipeable) - chalk border */}
                 <div
                   onTouchStart={(e) => handleTouchStart(e, friend.id)}
                   onTouchEnd={(e) => handleTouchEnd(e, friend.id)}
-                  className="bg-white rounded-[20px] p-5 border-[2.5px] transition-all duration-300 hover:shadow-lg"
+                  className="relative bg-white p-5 transition-all duration-300 overflow-hidden"
                   style={{
-                    borderColor: colorMap[borderColor],
-                    transform: swipedId === friend.id ? 'translateX(-100px)' : 'translateX(0)',
+                    transform: `
+                      translateX(${swipedId === friend.id ? '-100px' : '0'})
+                      rotate(${Math.random() * 1.5 - 0.75}deg)
+                    `,
                   }}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  {/* Rough.js hand-drawn border */}
+                  <RoughBorder
+                    color={colorMap[borderColor]}
+                    roughness={roughness}
+                  />
+
+                  <div className="flex items-start justify-between gap-3 relative z-10">
                     <div className="space-y-1 flex-1">
-                      <h3 className="font-bold text-lg" style={{ color: colorMap[borderColor] }}>
+                      <h3
+                        className="font-bold text-lg"
+                        style={{
+                          color: colorMap[borderColor],
+                          transform: `rotate(${Math.random() * 1 - 0.5}deg)`,
+                          display: 'inline-block',
+                        }}
+                      >
                         {friend.name}
                       </h3>
                       <p className="text-sm text-gray-600">
                         {friend.city || 'No city'} • {friend.cadence}
                       </p>
                     </div>
+
+                    {/* Edit button - chalk circle */}
                     <button
                       onClick={() => router.push(`/friends/${friend.id}`)}
-                      className="w-9 h-9 rounded-full border-[2.5px] flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-                      style={{ borderColor: colorMap[borderColor], color: colorMap[borderColor] }}
+                      className="relative w-10 h-10 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                      style={{
+                        color: colorMap[borderColor],
+                        transform: `rotate(${Math.random() * 2 - 1}deg)`,
+                      }}
                     >
-                      <EditIcon className="w-4 h-4" />
+                      <RoughCircle color={colorMap[borderColor]} roughness={roughness} />
+                      <EditIcon className="w-4 h-4 relative z-10" />
                     </button>
                   </div>
                 </div>

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { Permanent_Marker } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import { Providers } from "@/components/Providers";
 
-// Friendly, rounded sans-serif for the playful hand-drawn aesthetic
-const dmSans = DM_Sans({
+// Permanent Marker - bold hand-drawn marker style
+const permanentMarker = Permanent_Marker({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -24,10 +24,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={dmSans.variable}>
+    <html lang="en" className={permanentMarker.variable}>
       <body className="min-h-screen bg-[#FAF7F4] relative overflow-x-hidden font-sans">
         <Providers>
           {/* Clean bone white background with subtle paper texture (in globals.css) */}
+
+          {/* Hand-drawn illustration at the bottom */}
+          <div
+            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md h-[300px] pointer-events-none z-0"
+            style={{
+              backgroundImage: 'url(/images/closer-background.jpg)',
+              backgroundSize: 'contain',
+              backgroundPosition: 'bottom center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.08, // Very subtle
+              mixBlendMode: 'multiply',
+            }}
+          />
 
           {/* Content */}
           <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">

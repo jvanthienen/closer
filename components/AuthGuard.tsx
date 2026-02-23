@@ -4,9 +4,17 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
+// TEMPORARY: Disable auth for local design testing
+const DISABLE_AUTH_FOR_TESTING = true;
+
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+
+  // Skip auth check if testing mode is enabled
+  if (DISABLE_AUTH_FOR_TESTING) {
+    return <>{children}</>;
+  }
 
   useEffect(() => {
     if (!loading && !user) {

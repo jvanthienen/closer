@@ -5,6 +5,7 @@ import { useSession, signOut, signIn } from 'next-auth/react';
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/lib/auth-context";
 import { getFriends, getImportantDates, updateFriend, type Friend, type ImportantDate } from '@/lib/db';
+import RoughBorder from '@/components/RoughBorder';
 
 interface BusyTime {
   start: string;
@@ -178,6 +179,18 @@ function HomePage() {
   const [friendsWithTimes, setFriendsWithTimes] = useState<FriendWithBestTime[]>([]);
   const [upcomingDates, setUpcomingDates] = useState<UpcomingDate[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
+
+  // Light Chalk roughness (locked in)
+  const roughness = 2;
+
+  // Wine & Coffee color palette
+  const colors = {
+    coral: '#E05F4F',
+    blue: '#3B7CC4',
+    orange: '#F5A052',
+    navy: '#2C3E5A',
+    maroon: '#9B5174',
+  };
 
   // WhatsApp action handlers
   const handleWhatsAppAction = async (friend: Friend, action: 'call' | 'message', e: React.MouseEvent) => {
@@ -424,30 +437,24 @@ function HomePage() {
       {/* Calendar Connection Card - Always visible */}
       <div className="animate-slide-up">
         <div
-          className="rounded-[24px] p-6 backdrop-blur-md border"
+          className="relative bg-white p-6"
           style={{
-            background: session?.accessToken
-              ? 'rgba(46, 125, 50, 0.08)'
-              : 'rgba(232, 146, 100, 0.08)',
-            borderColor: session?.accessToken
-              ? 'rgba(46, 125, 50, 0.2)'
-              : 'rgba(232, 146, 100, 0.2)',
-            boxShadow: '0 4px 16px rgba(139, 98, 74, 0.08)',
+            transform: `rotate(${Math.random() * 1 - 0.5}deg)`,
           }}
         >
-          <div className="flex items-start gap-4">
+          <RoughBorder color={colors.blue} roughness={roughness} />
+          <div className="flex items-start gap-4 relative z-10">
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{
-                background: session?.accessToken
-                  ? 'linear-gradient(135deg, rgba(46, 125, 50, 0.15) 0%, rgba(46, 125, 50, 0.1) 100%)'
-                  : 'linear-gradient(135deg, rgba(232, 146, 100, 0.15) 0%, rgba(193, 123, 92, 0.1) 100%)',
+                background: session?.accessToken ? colors.blue : colors.orange,
+                opacity: 0.15,
               }}
             >
               <svg
                 className="w-6 h-6"
                 fill="none"
-                stroke={session?.accessToken ? "#2E7D32" : "#C17B5C"}
+                stroke={session?.accessToken ? colors.blue : colors.orange}
                 strokeWidth="2"
                 viewBox="0 0 24 24"
               >
@@ -461,10 +468,10 @@ function HomePage() {
 
             <div className="flex-1 space-y-3">
               <div>
-                <h3 className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
+                <h3 className="font-bold" style={{ color: colors.navy }}>
                   {session?.accessToken ? 'Google Calendar Connected' : 'Connect your calendar'}
                 </h3>
-                <p className="text-sm font-sans opacity-70 mt-1" style={{ color: '#7A6F65' }}>
+                <p className="text-sm text-gray-600 mt-1">
                   {session?.accessToken
                     ? "We'll automatically avoid suggesting calls during your busy times"
                     : "See when you're free and get smart call suggestions"}
@@ -474,26 +481,20 @@ function HomePage() {
               {!session?.accessToken ? (
                 <button
                   onClick={() => signIn('google')}
-                  className="px-5 py-2.5 rounded-full font-sans font-medium text-sm transition-all duration-300 hover:scale-[1.02]"
-                  style={{
-                    background: 'linear-gradient(135deg, #E89264 0%, #C17B5C 100%)',
-                    color: '#FFFCF9',
-                    boxShadow: '0 4px 16px rgba(232, 146, 100, 0.3)',
-                  }}
+                  className="relative px-5 py-2.5 bg-transparent font-bold text-sm transition-all hover:scale-105"
+                  style={{ color: colors.blue }}
                 >
-                  Connect Google Calendar
+                  <RoughBorder color={colors.blue} roughness={roughness} />
+                  <span className="relative z-10">Connect Google Calendar</span>
                 </button>
               ) : (
                 <button
                   onClick={() => signOut()}
-                  className="px-5 py-2.5 rounded-full font-sans font-medium text-sm transition-all duration-300 hover:scale-[1.02]"
-                  style={{
-                    background: 'rgba(179, 38, 30, 0.1)',
-                    color: '#B3261E',
-                    border: '1px solid rgba(179, 38, 30, 0.2)',
-                  }}
+                  className="relative px-5 py-2.5 bg-transparent font-bold text-sm transition-all hover:scale-105"
+                  style={{ color: colors.coral }}
                 >
-                  Disconnect Calendar
+                  <RoughBorder color={colors.coral} roughness={roughness} />
+                  <span className="relative z-10">Disconnect Calendar</span>
                 </button>
               )}
             </div>
@@ -504,17 +505,16 @@ function HomePage() {
       {/* Free Time Section */}
       {session?.accessToken && freeSlots.length > 0 && (
         <div className="space-y-4 animate-slide-up">
-          <div className="relative">
-            <h2 className="relative inline-block text-lg font-serif" style={{ color: '#5C4A3E' }}>
-              Your free time
-              <div
-                className="absolute -bottom-1 left-0 h-[3px] w-16 rounded-full opacity-40"
-                style={{
-                  background: 'linear-gradient(90deg, #E89264 0%, transparent 100%)',
-                }}
-              />
-            </h2>
-          </div>
+          <h2
+            className="text-lg font-bold"
+            style={{
+              color: colors.navy,
+              transform: `rotate(${Math.random() * 1 - 0.5}deg)`,
+              display: 'inline-block',
+            }}
+          >
+            Your free time
+          </h2>
 
           <div className="space-y-3">
             {freeSlots.map((slot, idx) => {
@@ -522,27 +522,25 @@ function HomePage() {
               return (
                 <div
                   key={idx}
-                  className="rounded-[20px] p-4 backdrop-blur-md border transition-all duration-300 hover:scale-[1.02]"
+                  className="relative bg-white p-4 transition-all hover:scale-[1.02]"
                   style={{
-                    background: 'rgba(232, 146, 100, 0.08)',
-                    borderColor: 'rgba(232, 146, 100, 0.2)',
-                    boxShadow: '0 4px 16px rgba(232, 146, 100, 0.08)',
+                    transform: `rotate(${Math.random() * 0.5 - 0.25}deg)`,
                   }}
                 >
-                  <div className="flex items-center justify-between">
+                  <RoughBorder color={colors.orange} roughness={roughness} />
+                  <div className="flex items-center justify-between relative z-10">
                     <div>
-                      <p className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
+                      <p className="font-bold" style={{ color: colors.navy }}>
                         {dayLabel}
                       </p>
-                      <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
+                      <p className="text-sm text-gray-600">
                         {timeRange}
                       </p>
                     </div>
                     <div
-                      className="px-3 py-1 rounded-full text-xs font-sans font-medium"
+                      className="px-3 py-1 text-xs font-bold"
                       style={{
-                        background: 'rgba(232, 146, 100, 0.15)',
-                        color: '#C17B5C',
+                        color: colors.orange,
                       }}
                     >
                       {Math.floor(slot.duration / 60)}h {slot.duration % 60}m
@@ -555,17 +553,16 @@ function HomePage() {
         </div>
       )}
 
-      {/* Header with decorative element */}
+      {/* Header */}
       <div className="relative">
-        <h1 className="relative inline-block">
+        <h1
+          style={{
+            color: colors.maroon,
+            transform: `rotate(${Math.random() * 1.5 - 0.75}deg)`,
+            display: 'inline-block',
+          }}
+        >
           Best this week
-          {/* Decorative underline */}
-          <div
-            className="absolute -bottom-1 left-0 h-[3px] w-20 rounded-full opacity-40"
-            style={{
-              background: 'linear-gradient(90deg, #C17B5C 0%, transparent 100%)',
-            }}
-          />
         </h1>
       </div>
 
@@ -573,94 +570,65 @@ function HomePage() {
       {loadingFriends ? (
         <div className="flex items-center justify-center py-12">
           <div
-            className="w-12 h-12 rounded-full animate-pulse"
-            style={{
-              background: 'linear-gradient(135deg, rgba(232, 146, 100, 0.3) 0%, rgba(193, 123, 92, 0.2) 100%)',
-            }}
-          />
+            className="text-lg font-bold animate-pulse"
+            style={{ color: colors.blue }}
+          >
+            Loading...
+          </div>
         </div>
       ) : friends.length === 0 || friendsWithTimes.filter(f => f.bestCallTime !== null).length === 0 ? (
         /* Empty state card */
         <div
-          className="relative group animate-slide-up"
-          style={{ animationDelay: '0.1s' }}
+          className="relative bg-white p-8 animate-slide-up"
+          style={{
+            animationDelay: '0.1s',
+            transform: `rotate(${Math.random() * 1 - 0.5}deg)`,
+          }}
         >
-          {/* Warm glow behind card */}
-          <div
-            className="absolute inset-0 rounded-[28px] opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-            style={{
-              background: 'radial-gradient(circle at 50% 50%, rgba(232, 146, 100, 0.15) 0%, transparent 70%)',
-              filter: 'blur(20px)',
-              transform: 'scale(1.1)',
-            }}
-          />
+          <RoughBorder color={colors.maroon} roughness={roughness} />
 
-          {/* Main card */}
-          <div
-            className="relative rounded-[28px] p-8 backdrop-blur-md border transition-all duration-500 hover:scale-[1.02]"
-            style={{
-              background: 'rgba(255, 252, 249, 0.65)',
-              borderColor: 'rgba(255, 255, 255, 0.5)',
-              boxShadow: '0 8px 32px rgba(139, 98, 74, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
-            }}
-          >
-            {/* Content */}
-            <div className="relative space-y-6">
-              {/* Text */}
-              <div className="space-y-3">
-                <p
-                  className="text-lg leading-relaxed font-serif"
-                  style={{ color: '#5C4A3E' }}
-                >
-                  {friends.length === 0 ? (
-                    <>
-                      Add someone you miss.
-                      <br />
-                      We'll find the gentle overlap.
-                    </>
-                  ) : (
-                    <>
-                      No good call times today or tomorrow.
-                      <br />
-                      Check back later for suggestions.
-                    </>
-                  )}
-                </p>
+          {/* Content */}
+          <div className="relative space-y-6 z-10">
+            {/* Text */}
+            <div className="space-y-3">
+              <p
+                className="text-lg leading-relaxed font-bold"
+                style={{ color: colors.navy }}
+              >
+                {friends.length === 0 ? (
+                  <>
+                    Add someone you miss.
+                    <br />
+                    We'll find the gentle overlap.
+                  </>
+                ) : (
+                  <>
+                    No good call times today or tomorrow.
+                    <br />
+                    Check back later for suggestions.
+                  </>
+                )}
+              </p>
 
-                <p
-                  className="text-sm font-sans opacity-60"
-                  style={{ color: '#8B624A' }}
-                >
-                  {friends.length === 0
-                    ? 'No calls scheduled yet'
-                    : 'Adjust friend availability or check back later'
-                  }
-                </p>
-              </div>
-
-              {/* CTA */}
-              {friends.length === 0 && (
-                <button
-                  onClick={() => (window.location.href = '/friends/add')}
-                  className="group/btn relative px-6 py-3 rounded-full font-sans font-medium text-sm transition-all duration-300 hover:scale-105 active:scale-95"
-                  style={{
-                    background: 'linear-gradient(135deg, #E89264 0%, #C17B5C 100%)',
-                    color: '#FFFCF9',
-                    boxShadow: '0 4px 16px rgba(232, 146, 100, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                  }}
-                >
-                  <span className="relative z-10">Add your first friend</span>
-
-                  {/* Hover glow */}
-                  <div
-                    className="absolute inset-0 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%)',
-                    }}
-                  />
-                </button>
-              )}
+              <p className="text-sm text-gray-600">
+                {friends.length === 0
+                  ? 'No calls scheduled yet'
+                  : 'Adjust friend availability or check back later'
+                }
+              </p>
             </div>
+
+            {/* CTA */}
+            {friends.length === 0 && (
+              <button
+                onClick={() => (window.location.href = '/friends/add')}
+                className="relative px-6 py-3 bg-transparent font-bold text-sm transition-all hover:scale-105 active:scale-95"
+                style={{ color: colors.coral }}
+              >
+                <RoughBorder color={colors.coral} roughness={roughness} />
+                <span className="relative z-10">Add your first friend</span>
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -669,130 +637,123 @@ function HomePage() {
           {friendsWithTimes
             .filter(friend => friend.bestCallTime !== null)
             .slice(0, 5)
-            .map((friend) => (
-            <div
-              key={friend.id}
-              onClick={() => (window.location.href = `/friends/${friend.id}`)}
-              className="rounded-[24px] p-5 backdrop-blur-md border transition-all duration-300 hover:scale-[1.01] cursor-pointer"
-              style={{
-                background: 'rgba(255, 252, 249, 0.65)',
-                borderColor: 'rgba(255, 255, 255, 0.5)',
-                boxShadow: '0 4px 16px rgba(139, 98, 74, 0.08)',
-              }}
-            >
-              {/* Friend header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <p className="font-serif text-lg mb-1" style={{ color: '#3D2817' }}>
-                    {friend.name}
-                  </p>
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
-                      {friend.city || 'No city set'} • Their time: {friend.currentLocalTime}
-                    </p>
-                    {friend.last_called_at && (
-                      <p className="text-xs font-sans opacity-50" style={{ color: '#7A6F65' }}>
-                        {formatLastContacted(friend.last_called_at)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div
-                  className="px-3 py-1 rounded-full text-xs font-sans font-medium"
-                  style={{
-                    background: 'rgba(232, 146, 100, 0.15)',
-                    color: '#C17B5C',
-                  }}
-                >
-                  {friend.cadence}
-                </div>
-              </div>
+            .map((friend, idx) => {
+              // Rotate through the 5 colors
+              const colorKeys = ['coral', 'blue', 'orange', 'navy', 'maroon'] as const;
+              const borderColor = colors[colorKeys[idx % colorKeys.length]];
 
-              {/* Best call time */}
-              {friend.bestCallTime && (
+              return (
                 <div
-                  className="rounded-2xl p-3 space-y-2 mb-3"
+                  key={friend.id}
+                  onClick={() => (window.location.href = `/friends/${friend.id}`)}
+                  className="relative bg-white p-5 transition-all duration-300 hover:scale-[1.01] cursor-pointer"
                   style={{
-                    background: 'rgba(232, 146, 100, 0.08)',
-                    border: '1px solid rgba(232, 146, 100, 0.15)',
+                    transform: `rotate(${Math.random() * 0.8 - 0.4}deg)`,
                   }}
                 >
-                  {/* Reason */}
-                  <div className="flex items-center gap-2">
+                  <RoughBorder color={borderColor} roughness={roughness} />
+
+                  {/* Friend header */}
+                  <div className="flex items-start justify-between mb-3 relative z-10">
+                    <div className="flex-1">
+                      <p className="font-bold text-lg mb-1" style={{ color: borderColor }}>
+                        {friend.name}
+                      </p>
+                      <div className="space-y-0.5">
+                        <p className="text-sm text-gray-600">
+                          {friend.city || 'No city set'} • Their time: {friend.currentLocalTime}
+                        </p>
+                        {friend.last_called_at && (
+                          <p className="text-xs text-gray-500">
+                            {formatLastContacted(friend.last_called_at)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                     <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: '#C17B5C' }}
-                    />
-                    <p className="text-xs font-sans font-medium" style={{ color: '#C17B5C' }}>
-                      {friend.bestCallTime.reason}
-                    </p>
-                  </div>
-
-                  {/* Times */}
-                  <div className="flex items-center gap-4 text-sm font-sans">
-                    <div className="flex-1">
-                      <p className="text-xs opacity-60" style={{ color: '#7A6F65' }}>
-                        Your time
-                      </p>
-                      <p className="font-medium" style={{ color: '#5C4A3E' }}>
-                        {friend.bestCallTime.yourTime.toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs opacity-60" style={{ color: '#7A6F65' }}>
-                        Their time
-                      </p>
-                      <p className="font-medium" style={{ color: '#5C4A3E' }}>
-                        {friend.bestCallTime.theirTime.toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}
-                      </p>
+                      className="px-3 py-1 text-xs font-bold"
+                      style={{
+                        color: borderColor,
+                      }}
+                    >
+                      {friend.cadence}
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* WhatsApp actions */}
-              {friend.phone && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => handleWhatsAppAction(friend, 'call', e)}
-                    className="flex-1 px-4 py-2.5 rounded-full font-sans font-medium text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-                    style={{
-                      background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-                      color: '#FFFCF9',
-                      boxShadow: '0 2px 8px rgba(37, 211, 102, 0.3)',
-                    }}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    Call
-                  </button>
-                  <button
-                    onClick={(e) => handleWhatsAppAction(friend, 'message', e)}
-                    className="flex-1 px-4 py-2.5 rounded-full font-sans font-medium text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-                    style={{
-                      background: 'rgba(37, 211, 102, 0.1)',
-                      border: '1px solid rgba(37, 211, 102, 0.3)',
-                      color: '#128C7E',
-                    }}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    Message
-                  </button>
+                  {/* Best call time */}
+                  {friend.bestCallTime && (
+                    <div className="p-3 space-y-2 mb-3 relative z-10" style={{ background: '#F5F5F5' }}>
+                      {/* Reason */}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ background: borderColor }}
+                        />
+                        <p className="text-xs font-bold" style={{ color: borderColor }}>
+                          {friend.bestCallTime.reason}
+                        </p>
+                      </div>
+
+                      {/* Times */}
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex-1">
+                          <p className="text-xs text-gray-500">Your time</p>
+                          <p className="font-bold" style={{ color: colors.navy }}>
+                            {friend.bestCallTime.yourTime.toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </p>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs text-gray-500">Their time</p>
+                          <p className="font-bold" style={{ color: colors.navy }}>
+                            {friend.bestCallTime.theirTime.toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* WhatsApp actions */}
+                  {friend.phone && (
+                    <div className="flex items-center gap-2 relative z-10">
+                      <button
+                        onClick={(e) => handleWhatsAppAction(friend, 'call', e)}
+                        className="flex-1 px-4 py-2.5 font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                        style={{
+                          background: '#25D366',
+                          color: 'white',
+                        }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        Call
+                      </button>
+                      <button
+                        onClick={(e) => handleWhatsAppAction(friend, 'message', e)}
+                        className="relative flex-1 px-4 py-2.5 bg-transparent font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                        style={{
+                          color: '#128C7E',
+                        }}
+                      >
+                        <RoughBorder color="#128C7E" roughness={roughness} />
+                        <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <span className="relative z-10">Message</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            })}
         </div>
       )}
 
@@ -802,81 +763,73 @@ function HomePage() {
         style={{ animationDelay: '0.2s' }}
       >
         <h2
-          className="text-lg mb-4 font-serif opacity-70"
-          style={{ color: '#5C4A3E' }}
+          className="text-lg mb-4 font-bold"
+          style={{
+            color: colors.navy,
+            transform: `rotate(${Math.random() * 1 - 0.5}deg)`,
+            display: 'inline-block',
+          }}
         >
           Upcoming
         </h2>
 
         {loadingFriends ? (
-          <div
-            className="rounded-[24px] p-6 backdrop-blur-md border"
-            style={{
-              background: 'rgba(255, 252, 249, 0.45)',
-              borderColor: 'rgba(255, 255, 255, 0.4)',
-            }}
-          >
-            <div className="flex items-center justify-center py-4">
-              <div
-                className="w-8 h-8 rounded-full animate-pulse"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(232, 146, 100, 0.3) 0%, rgba(193, 123, 92, 0.2) 100%)',
-                }}
-              />
+          <div className="relative bg-white p-6">
+            <RoughBorder color={colors.blue} roughness={roughness} />
+            <div className="flex items-center justify-center py-4 relative z-10">
+              <div className="text-lg font-bold animate-pulse" style={{ color: colors.blue }}>
+                Loading...
+              </div>
             </div>
           </div>
         ) : upcomingDates.length === 0 ? (
-          <div
-            className="rounded-[24px] p-6 backdrop-blur-md border"
-            style={{
-              background: 'rgba(255, 252, 249, 0.45)',
-              borderColor: 'rgba(255, 255, 255, 0.4)',
-            }}
-          >
-            <p
-              className="text-sm font-sans text-center opacity-50"
-              style={{ color: '#8B624A' }}
-            >
+          <div className="relative bg-white p-6" style={{ transform: `rotate(${Math.random() * 0.5 - 0.25}deg)` }}>
+            <RoughBorder color={colors.navy} roughness={roughness} />
+            <p className="text-sm text-center text-gray-500 relative z-10">
               No important dates in the next 30 days
             </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {upcomingDates.map((item, idx) => (
-              <div
-                key={idx}
-                className="rounded-[20px] p-4 backdrop-blur-md border transition-all duration-300 hover:scale-[1.02]"
-                style={{
-                  background: 'rgba(255, 252, 249, 0.65)',
-                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                  boxShadow: '0 4px 16px rgba(139, 98, 74, 0.08)',
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-sans font-medium" style={{ color: '#5C4A3E' }}>
-                      {item.friend.name} • {item.date.label}
-                    </p>
-                    <p className="text-sm font-sans opacity-70" style={{ color: '#7A6F65' }}>
-                      {item.dateThisYear.toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: item.dateThisYear.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                      })}
-                    </p>
-                  </div>
-                  <div
-                    className="px-3 py-1 rounded-full text-xs font-sans font-medium"
-                    style={{
-                      background: item.daysUntil <= 7 ? 'rgba(232, 146, 100, 0.2)' : 'rgba(232, 146, 100, 0.1)',
-                      color: '#C17B5C',
-                    }}
-                  >
-                    {item.daysUntil === 0 ? 'Today' : item.daysUntil === 1 ? 'Tomorrow' : `${item.daysUntil} days`}
+            {upcomingDates.map((item, idx) => {
+              // Rotate through colors for upcoming dates too
+              const colorKeys = ['coral', 'blue', 'orange', 'navy', 'maroon'] as const;
+              const borderColor = colors[colorKeys[idx % colorKeys.length]];
+
+              return (
+                <div
+                  key={idx}
+                  className="relative bg-white p-4 transition-all duration-300 hover:scale-[1.02]"
+                  style={{
+                    transform: `rotate(${Math.random() * 0.5 - 0.25}deg)`,
+                  }}
+                >
+                  <RoughBorder color={borderColor} roughness={roughness} />
+                  <div className="flex items-center justify-between relative z-10">
+                    <div>
+                      <p className="font-bold" style={{ color: borderColor }}>
+                        {item.friend.name} • {item.date.label}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {item.dateThisYear.toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: item.dateThisYear.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                        })}
+                      </p>
+                    </div>
+                    <div
+                      className="px-3 py-1 text-xs font-bold"
+                      style={{
+                        color: borderColor,
+                      }}
+                    >
+                      {item.daysUntil === 0 ? 'Today' : item.daysUntil === 1 ? 'Tomorrow' : `${item.daysUntil} days`}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

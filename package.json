@@ -16,7 +16,8 @@
     "next": "^15.1.4",
     "next-auth": "^4.24.13",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "roughjs": "^4.6.6"
   },
   "devDependencies": {
     "@types/google.maps": "^3.58.1",
