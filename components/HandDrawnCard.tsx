@@ -1,4 +1,5 @@
 import React from 'react';
+import WobblyBorder from './WobblyBorder';
 
 interface HandDrawnCardProps {
   children: React.ReactNode;
@@ -27,16 +28,23 @@ export default function HandDrawnCard({
     <div
       onClick={onClick}
       className={`
-        relative bg-white rounded-[20px] p-5
-        border-[2.5px] transition-all duration-200
+        relative bg-white p-5
+        transition-all duration-200
         ${onClick ? 'cursor-pointer hover:-translate-y-1' : ''}
         ${className}
       `}
       style={{
-        borderColor: borderColors[borderColor],
+        // Slight rotation for authentic hand-drawn feel
+        transform: `rotate(${Math.random() * 1.5 - 0.75}deg)`,
       }}
     >
-      {children}
+      {/* Wobbly hand-drawn border */}
+      <WobblyBorder color={borderColors[borderColor]} />
+
+      {/* Content */}
+      <div className="relative z-10">
+        {children}
+      </div>
     </div>
   );
 }

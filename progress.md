@@ -112,4 +112,108 @@
 
 ---
 
-*Last updated: 2026-02-22*
+## 📅 Session Log - February 23, 2026
+
+### ✅ Completed Today: Shared Availability Feature (V0)
+
+**Database Schema:**
+- [x] Created `public_profiles` table for shareable availability
+  - share_token (unique link for each user)
+  - timezone, weekday/weekend hours
+  - google_calendar_connected flag
+  - availability_updated_at timestamp
+- [x] Created `friend_connections` table for bidirectional relationships
+- [x] Added RLS policies for public access via share token
+
+**API Routes (Server-Side):**
+- [x] `/api/profile/public/[shareToken]/route.ts` - Public profile fetch (no auth)
+- [x] `/api/profile/me/route.ts` - Get/create user's public profile with error logging
+- [x] `/api/availability/update/route.ts` - Update availability (UPSERT pattern)
+- [x] `/api/connections/route.ts` - Get connections with profiles
+- [x] Fixed all routes to use server-side authentication pattern
+- [x] Fixed Next.js 15 async params compatibility
+
+**Components:**
+- [x] `WeeklyAvailability.tsx` - Daily windows view with friendly language
+  - Went through 3 iterations based on feedback
+  - Shows emojis (☕☀️🌙), casual language ("Might catch me", "Good windows to call")
+- [x] `UserMenu.tsx` - User profile menu with logout
+  - Shows initials in circular button (top right)
+  - Dropdown with email and sign out option
+- [x] `ShareLinkCard.tsx` - Display shareable URL with copy button
+- [x] `ConnectionsList.tsx` - List connected friends with availability preview
+- [x] `AvailabilityDisplay.tsx` - Show weekday/weekend availability blocks
+- [x] `AvailabilityForm.tsx` - Manual form for setting availability
+
+**Pages:**
+- [x] `/app/share/[shareToken]/page.tsx` - Public share page (no auth required)
+  - Shows friend's availability to anyone with link
+  - Friendly message: "You might catch your friend free around these times"
+- [x] `/app/availability/set/page.tsx` - Set availability (manual or calendar sync)
+- [x] `/app/availability/share/page.tsx` - User's sharing dashboard
+  - Shows own availability from calendar
+  - Auto-save functionality for calendar data
+  - "💾 Save to Share Link" button when calendar data exists
+  - List of connected friends
+
+**Navigation & Layout:**
+- [x] Added UserMenu component to global layout (top right)
+- [x] Added "Share" tab to bottom navigation
+- [x] Integrated Google Calendar auto-save for availability
+
+**Fixes & Debugging:**
+- [x] Fixed foreign key relationship errors (refactored to separate queries)
+- [x] Fixed authentication in API routes (server-side pattern with Authorization header)
+- [x] Fixed UPSERT vs UPDATE issue for profile creation
+- [x] Added comprehensive error logging to profile/me route
+- [x] Resolved magic link redirect issues (Supabase URL configuration)
+
+### 🔴 Issues Encountered (Blockers)
+
+1. **Supabase Auth Rate Limiting**
+   - Exceeded magic link attempts during testing
+   - Need to wait ~1 hour for reset
+
+2. **Google OAuth Disabled**
+   - Error: "Unsupported provider: provider is not enabled"
+   - Google provider needs to be enabled in Supabase Dashboard
+
+3. **"Failed to load profile" Error**
+   - Profile creation failing on `/availability/share` page
+   - Added error logging, but need successful auth to debug further
+
+4. **Missing Friends Data**
+   - Original friends disappeared after switching accounts
+   - Need to investigate data integrity
+
+### 📋 Tomorrow's Tasks (February 24, 2026)
+
+**Immediate Fixes (15 min):**
+1. Enable Google OAuth in Supabase Dashboard
+   - Go to Authentication → Providers
+   - Enable Google provider
+   - Verify OAuth credentials are configured
+
+2. Wait out rate limit (~1 hour from last attempt)
+
+**Debugging (30 min):**
+3. Debug profile creation issue
+   - Server logs should now show exact error (added comprehensive logging)
+   - Fix whatever is preventing `public_profiles` record creation
+
+4. Investigate missing friends data
+   - Check if data was deleted or if it's a query/RLS issue
+   - Verify friends are still in database
+
+**Testing (30 min):**
+5. Test complete shared availability flow end-to-end:
+   - User A sets up availability via calendar sync
+   - User A copies share link
+   - Friend (User B) clicks link → views availability
+   - User B creates account & shares back
+   - Verify bidirectional connection works
+   - Verify both users can see each other's availability
+
+---
+
+*Last updated: 2026-02-23*

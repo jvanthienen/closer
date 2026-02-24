@@ -206,3 +206,56 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Public Profiles table (for shared availability)
+create table public_profiles (
+  id uuid references profiles(id) on delete cascade primary key,
+  share_token text unique not null default encode(gen_random_bytes(16), 'hex'),
+  name text,
+  timezone text,
+  weekday_start time,
+  weekday_end time,
+  weekend_start time,
+  weekend_end time,
+  google_calendar_connected boolean default false,
+  availability_updated_at timestamp with time zone,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Friend Connections table (bidirectional friend relationships)
+create table friend_connections (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references profiles(id) on delete cascade not null,
+  connected_user_id uuid references profiles(id) on delete cascade not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id, connected_user_id)
+);
+
+-- RLS for public_profiles
+alter table public_profiles enable row level security;
+
+create policy "Public profiles are viewable by share token"
+  on public_profiles for select
+  using (true);
+
+create policy "Users can manage own public profile"
+  on public_profiles for all
+  using (auth.uid() = id);
+
+-- RLS for friend_connections
+alter table friend_connections enable row level security;
+
+create policy "Users can view connections where they're involved"
+  on friend_connections for select
+  using (auth.uid() = user_id or auth.uid() = connected_user_id);
+
+create policy "Users can create own connections"
+  on friend_connections for insert
+  with check (auth.uid() = user_id);
+
+-- Trigger for public_profiles updated_at
+create trigger handle_public_profiles_updated_at
+  before update on public_profiles
+  for each row
+  execute procedure handle_updated_at();

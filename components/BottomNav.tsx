@@ -134,6 +134,55 @@ export default function BottomNav() {
                 />
               )}
             </Link>
+
+            <Link
+              href="/availability/share"
+              className="relative flex flex-col items-center gap-1.5 py-2 px-6 transition-all duration-300"
+            >
+              {/* Active indicator */}
+              {(isActive("/availability/share") || pathname?.startsWith("/availability")) && (
+                <div
+                  className="absolute inset-0 rounded-2xl animate-fade-in"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(232, 146, 100, 0.12) 0%, rgba(193, 123, 92, 0.08) 100%)',
+                  }}
+                />
+              )}
+
+              <svg
+                className={`w-6 h-6 relative z-10 transition-all duration-300 ${
+                  (isActive("/availability/share") || pathname?.startsWith("/availability")) ? "scale-110" : ""
+                }`}
+                fill="none"
+                stroke={(isActive("/availability/share") || pathname?.startsWith("/availability")) ? "#C17B5C" : "#A08A7A"}
+                strokeWidth={(isActive("/availability/share") || pathname?.startsWith("/availability")) ? "2.5" : "2"}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                />
+              </svg>
+              <span
+                className={`text-xs font-sans font-medium relative z-10 transition-all duration-300 ${
+                  (isActive("/availability/share") || pathname?.startsWith("/availability")) ? "opacity-100" : "opacity-60"
+                }`}
+                style={{ color: (isActive("/availability/share") || pathname?.startsWith("/availability")) ? "#C17B5C" : "#8B624A" }}
+              >
+                Share
+              </span>
+
+              {/* Active dot indicator */}
+              {(isActive("/availability/share") || pathname?.startsWith("/availability")) && (
+                <div
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full animate-fade-in"
+                  style={{
+                    background: '#C17B5C',
+                  }}
+                />
+              )}
+            </Link>
           </div>
         </div>
       </div>

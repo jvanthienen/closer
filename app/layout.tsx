@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import UserMenu from "@/components/UserMenu";
 import { Providers } from "@/components/Providers";
 
 // Friendly, rounded sans-serif for the playful hand-drawn aesthetic
@@ -28,6 +29,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#FAF7F4] relative overflow-x-hidden font-sans">
         <Providers>
           {/* Clean bone white background with subtle paper texture (in globals.css) */}
+
+          {/* User menu */}
+          <UserMenu />
 
           {/* Content */}
           <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">
